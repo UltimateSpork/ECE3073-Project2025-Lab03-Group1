@@ -1,17 +1,22 @@
 #include <stdio.h>
 
-volatile int * LED_ptr  = (int *) 0x00021090;
+volatile int * LED_ptr = (int *) 0x00021050;
+/* Ideally you would use on address and both keys for the mask
+but it wasn't working for some reason */
+volatile int * key0 = (int *) 0x00021030;
+volatile int * key1 = (int *) 0x00021020;
+volatile int * HEX_low_ptr  = (int *) 0x00021000;
+volatile int * HEX_high_ptr = (int *) 0x00021010;
 
-int main()
-{
-  printf("Hello from Nios II!\n");
+int main() {
+    // 0xFFFFFFFF turns all segments OFF (if Active Low)
+    // 0x00000000 turns all segments ON (if Active Low)
 
+    *HEX_high_ptr = 0x0000; // Turn on HEX4 and HEX5
 
-  while (1){
+    // This should put a '0' on HEX0 and turn HEX1, 2, and 3 OFF
+    // Pattern: 0xFF (Off) | 0xFF (Off) | 0xFF (Off) | 0xC0 (Zero)
+    *HEX_low_ptr = 0xFFFFFFF6;
 
-	  *(LED_ptr) = !(*(LED_ptr));
-
-
-  }
-  return 0;
+    return 0;
 }
