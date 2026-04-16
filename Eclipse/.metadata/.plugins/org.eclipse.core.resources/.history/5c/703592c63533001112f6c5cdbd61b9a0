@@ -1,0 +1,33 @@
+#include <stdio.h>
+
+volatile int * LED_ptr = (int *) 0x00021050;
+/* Ideally you would use on address and both keys for the mask
+but it wasn't working for some reason */
+volatile int * key0 = (int *) 0x00021030;
+volatile int * key1 = (int *) 0x00021020;
+
+int main() {
+    int bogus = 0;
+    *LED_ptr = 0x0000;
+    //printf("Press Key0/1\n");
+    while (1) {
+        int key0_val = *key0 & 0x1;
+        int key1_val = *key1 & 0x1;
+        printf("%d",key0_val);
+
+        if (key0_val == 0) {
+            while (*key0 == 0){
+            }
+        *LED_ptr = 0x0F;
+        }
+        if (key1_val == 0) {
+            while (*key1 == 0){
+            }
+            *LED_ptr = 0xF0;
+        }
+        for (volatile int i = 0; i < 10000; i++){
+        	bogus += 1;
+        }
+    }
+    return 0;
+}

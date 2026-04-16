@@ -1,0 +1,38 @@
+#include <stdio.h>
+
+volatile int * LED_ptr  = (int *) 0x00021090;
+volatile int * button = (int *) 0x00021070;
+
+int main()
+{
+	int LED_counter = 1;
+	int prev;
+	int prev_button;
+	int led_state = 0;
+  /* Event loop never exits. */
+
+  while (1){
+	  if ((!prev) && *(button) && 0x01){
+
+		  *(button) = LED_counter++;
+		  if (!(*InPort_SW2) && prev_button) {
+
+		      led_state = !led_state;
+
+		      if (led_state) {
+		          *(OutPort_LED8) = 0x01;
+		      } else {
+		          *(OutPort_LED8) = 0x00;
+		      }
+		  }
+
+  }
+	  prev = *(InPort_Counter);
+
+
+
+  }
+
+  return 0;
+}
+

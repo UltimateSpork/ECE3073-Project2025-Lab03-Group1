@@ -1,0 +1,36 @@
+#include <stdio.h>
+
+volatile int * LED_ptr = (volatile int *) 0x00021070;
+volatile int * key0    = (volatile int *) 0x00021040;
+volatile int * key1    = (volatile int *) 0x00021050;
+
+int main() {
+    // Light up LED 9 to show the program is actually running
+    *LED_ptr = 0x200;
+
+    while (1) {
+        int k0 = *key0;
+        int k1 = *key1;
+
+        // Simple Combinational Logic:
+        // If Key 0 is pressed (0), light up bottom 4 LEDs.
+        // If Key 1 is pressed (0), light up middle 4 LEDs.
+
+        int output = 0x200; // Keep the "Power" LED on
+
+        if (k0 == 0) {
+            output |= 0x00F; // Turn on LEDs 0, 1, 2, 3
+        }
+
+        if (k1 == 0) {
+            output |= 0x0F0; // Turn on LEDs 4, 5, 6, 7
+        }
+
+        *LED_ptr = output;
+
+        // No debounce, no waiting, no printing.
+        // Just pure hardware-to-hardware mirroring.
+    }
+
+    return 0;
+}

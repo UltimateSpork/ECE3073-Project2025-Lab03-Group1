@@ -1,0 +1,13 @@
+15:26:24 **** Incremental Build of configuration Nios II for project M1 ****
+make all 
+Info: Building ../M1_bsp/
+C:/intelFPGA_lite/18.1/nios2eds/bin/gnu/H-x86_64-mingw32/bin/make --no-print-directory -C ../M1_bsp/
+[BSP build complete]
+Info: Compiling hello_world.c to obj/default/hello_world.o
+nios2-elf-gcc -xc -MP -MMD -c -I../M1_bsp//HAL/inc -I../M1_bsp/ -I../M1_bsp//drivers/inc  -pipe -D__hal__ -DALT_NO_INSTRUCTION_EMULATION -DALT_SINGLE_THREADED    -O0 -g -Wall   -mno-hw-div -mhw-mul -mno-hw-mulx -mgpopt=global  -o obj/default/hello_world.o hello_world.c
+hello_world.c:2:16: fatal error: os.h: No such file or directory
+compilation terminated.
+make: *** [obj/default/hello_world.o] Error 1
+
+15:26:25 Build Finished (took 491ms)
+

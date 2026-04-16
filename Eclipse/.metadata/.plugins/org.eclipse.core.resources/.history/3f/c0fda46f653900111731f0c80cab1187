@@ -1,0 +1,79 @@
+#include <stdio.h>
+#define TASK_STACKSIZE       2048
+#define VGA_TASK_PRIORITY    2
+
+volatile int * ADDR_EXPORT = (int *) 0x04041010;
+volatile int * PIXEL_EXPORT = (int *) 0x04041030;
+volatile int * WREN_EXPORT = (int *) 0x04041000;
+
+void write_pixel(unsigned int addr, unsigned char color);
+void draw_color_stripes();
+void draw_vertical_stripes();
+void VGATask(void* pdata);
+
+int main(){
+	printf("Testing\n");
+
+	while (1) {
+
+		VGATask(NULL);
+	}
+	return 0;
+}
+
+
+
+void write_pixel(unsigned int addr, unsigned char color){
+
+	*ADDR_EXPORT = addr;
+	*PIXEL_EXPORT = color & 0xF;
+	*WREN_EXPORT = 1;
+	*WREN_EXPORT = 0;
+
+}
+
+
+void draw_color_stripes(){
+
+	for (int y = 0; y < 240; y++){
+		for (int x = 0; x < 320; x++){
+			unsigned int addr = y * 320 + x;
+			unsigned char color = x /20;
+			write_pixel(addr, color);
+
+
+		}
+	}
+
+}
+
+
+void draw_vertical_stripes(){
+
+	for (int y = 0; y < 240; y++){
+
+
+		unsigned char color = y/15;
+		for (int x = 0; x < 320; x++){
+
+			unsigned int addr = y * 320 + x;
+			write_pixel(addr, color);
+		}
+
+		}
+}
+
+void VGATask(void* pdata){
+
+	while (1){
+		(void)pdata;
+		draw_color_stripes();
+		printf("Should output horizontal stripes");
+		OSTimeDlyHMSM(0,0,1,0);
+		draw_vertical_stripes();
+		printf("Should output vertical stripes");
+		OSTimeDlyHMSM(0,0,1,0);
+	}
+}
+
+

@@ -1,0 +1,17 @@
+#include <stdio.h>
+
+volatile int * LED_ptr = (int *) 0x00021050;
+volatile int * key0    = (int *) 0x00021030;
+
+int main() {
+    while (1) {
+        // If button is pressed (0), turn LED ON (1).
+        // If button is released (1), turn LED OFF (0).
+        if ((*key0 & 0x1) == 0) {
+            *LED_ptr = 0x1;
+        } else {
+            *LED_ptr = 0x0;
+        }
+    }
+    return 0;
+}

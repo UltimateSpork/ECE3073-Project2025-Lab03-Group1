@@ -1,0 +1,9 @@
+16:01:40 **** Incremental Build of configuration Nios II for project MileStone1Complete ****
+make all 
+Info: Building ../MileStone1Complete_bsp/
+C:/intelFPGA_lite/18.1/nios2eds/bin/gnu/H-x86_64-mingw32/bin/make --no-print-directory -C ../MileStone1Complete_bsp/
+[BSP build complete]
+[MileStone1Complete build complete]
+
+16:01:40 Build Finished (took 494ms)
+

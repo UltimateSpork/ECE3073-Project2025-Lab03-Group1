@@ -1,0 +1,41 @@
+
+void write_pixel(unsigned int addr, unsigned char color){
+
+	ADDR_EXPORT = addr;
+	PIXEL_EXPORT = color & 0xF;
+	WREN_EXPORT = 1;
+	WREN_EXPORT = 0;
+
+}
+
+
+void draw_color_stripes(){
+
+	for (int y = 0; y < 240; y++){
+		for (int x = 0; x < 320; x++){
+			unsigned int addr = y * 320 + x;
+			unsigned char color = x /20;
+			write_pixel(addr, color);
+
+
+		}
+	}
+
+}
+
+
+void draw_vertical_stripes(){
+
+	for (int y = 0; y < 240; y++){
+
+
+		unsigned char color = y/15;
+		for (int x = 0; x < 320; x++){
+
+			unsigned int addr = y * 320 + x;
+			write_pixel(addr, color);
+		}
+
+		}
+}
+

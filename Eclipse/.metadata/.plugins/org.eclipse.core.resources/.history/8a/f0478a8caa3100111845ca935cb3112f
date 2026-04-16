@@ -1,0 +1,37 @@
+#include <stdio.h>
+
+volatile int * LED_ptr = (int *) 0x00021070;
+volatile int * key0 = (int *) 0x00021040;
+volatile int * key1 = (int *) 0x00021040;
+
+
+int main() {
+    int led_state = 0;
+    int button_pressed_previously = 0;
+
+    *LED_ptr = 0x10;
+
+    while (1) {
+
+        int current_button_val = *button_ptr & 0x01;
+
+        if (current_button_val == 0 && button_pressed_previously == 1) {
+
+            led_state = !led_state;
+
+            if (led_state) {
+                *LED_ptr = 0x1FF;
+                printf("LEDs ON\n");
+            } else {
+                *LED_ptr = 0x000;
+                printf("LEDs OFF\n");
+            }
+        }
+
+        button_pressed_previously = current_button_val;
+
+        for(int i = 0; i < 1000; i++);
+    }
+
+    return 0;
+}

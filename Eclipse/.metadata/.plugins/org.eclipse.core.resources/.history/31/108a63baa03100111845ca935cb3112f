@@ -1,0 +1,18 @@
+#include <stdio.h>
+
+volatile int * LED_ptr  = (int *) 0x00021090;
+volatile int * button = (int *) 0x00021070;
+
+int main()
+{
+  printf("Hello from Nios II!\n");
+
+
+  while (1){
+
+	  *(LED_ptr) = !(*(LED_ptr));
+
+
+  }
+  return 0;
+}

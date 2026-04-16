@@ -1,0 +1,43 @@
+#include <stdio.h>
+
+volatile int * LED_ptr = (int *) 0x000210b0;
+/* Ideally you would use on address and both keys for the mask
+but it wasn't working for some reason */
+volatile int * key0 = (int *) 0x00021080;
+volatile int * key1 = (int *) 0x00021090;
+
+int main() {
+    int button_pressed_previously0 = 1;
+    int button_pressed_previously1 = 1;
+    int bogus = 0;
+    *LED_ptr = 0x0F;
+    //printf("Press Key0/1\n");
+    while (1) {
+    	//printf("%d\n",*key0);
+        int key0_current_val = *key0 & 0x01;
+        int key1_current_val = *key1 & 0x01;
+
+        if (key0_current_val == 0 && button_pressed_previously0 == 1) {
+
+            printf("Capturing Image");
+
+        }
+
+        if (key1_current_val == 0 && button_pressed_previously1 == 1) {
+
+            printf("Sending Image to VGA Port");
+
+        }
+
+        button_pressed_previously0 = key0_current_val;
+        button_pressed_previously1 = key1_current_val;
+        for(int i = 0; i < 10000; i++){
+
+        	bogus = bogus + 1;
+
+        }
+
+    }
+
+    return 0;
+}

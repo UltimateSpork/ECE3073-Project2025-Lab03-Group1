@@ -1,0 +1,25 @@
+#include <stdio.h>
+
+volatile int * LED_ptr = (int *) 0x00021050;
+/* Ideally you would use on address and both keys for the mask
+but it wasn't working for some reason */
+volatile int * key0 = (int *) 0x00021030;
+volatile int * key1 = (int *) 0x00021020;
+int main(void);
+
+int main() {
+    int prev0 = 1;
+    int prev1 = 1;
+    int bogus = 0;
+    int led_shadow = 0xFF;
+    *LED_ptr = led_shadow;
+    while (1) {
+    	// Patterns for digits 1, 2, 3, 4 (Active High)
+    	    // Hex0 = 1 (0x06), Hex1 = 2 (0x5B), Hex2 = 3 (0x4F), Hex3 = 4 (0x66)
+    	    *HEX_low_ptr = 0x664F5B06;
+
+    	    // Patterns for digits 5, 6 (Active High)
+    	    // Hex4 = 5 (0x6D), Hex5 = 6 (0x7D)
+    	    *HEX_high_ptr = 0x00007D6D;
+    return 0;
+}

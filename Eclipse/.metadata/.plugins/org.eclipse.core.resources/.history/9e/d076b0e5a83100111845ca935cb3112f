@@ -1,0 +1,41 @@
+#include <stdio.h>
+#include "system.h" // Use this to get your BASE addresses automatically
+
+// Use the addresses from your Qsys/system.h
+volatile int * LED_ptr = (int *) 0x00021090;
+volatile int * button_ptr = (int *) 0x00021070;
+
+int main() {
+    int led_state = 0;
+    int button_pressed_previously = 0;
+
+    printf("System Active. Press Button 0 to toggle LEDs.\n");
+
+    while (1) {
+        // 1. Read the button.
+        // Logic: 0 is pressed, 1 is unpressed (Active Low)
+        int current_button_val = *button_ptr & 0x01;
+
+        // 2. Detection: Button is pressed (0) AND it wasn't pressed before (1)
+        if (current_button_val == 0 && button_pressed_previously == 1) {
+
+            led_state = !led_state; // Toggle logic
+
+            if (led_state) {
+                *LED_ptr = 0x3FF; // All 10 LEDs ON
+                printf("LEDs ON\n");
+            } else {
+                *LED_ptr = 0x000; // All LEDs OFF
+                printf("LEDs OFF\n");
+            }
+        }
+
+        // 3. Update previous state for the next loop
+        button_pressed_previously = current_button_val;
+
+        // Small delay to prevent "bouncing"
+        for(int i = 0; i < 1000; i++);
+    }
+
+    return 0;
+}
