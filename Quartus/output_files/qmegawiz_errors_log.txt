@@ -1,0 +1,13 @@
+
+
+C:/Users/shahm/Desktop/ECE3073/MiniProject/ECE3072-Project2025-Lab03-Group1/Quartus/VGA_CLK.vhd
+
+Apr 17 02PM:22:34>: The following design file, which has identical name but a different extension 
+from the specified variation file, already exists in the working directory:
+
+VGA_CLK.v
+
+This may create a conflict of design files and/or lead to undesirable side
+effects.
+
+Is it OK to continue file generation?

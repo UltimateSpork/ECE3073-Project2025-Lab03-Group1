@@ -100,7 +100,7 @@
 
 # Additional removals
 *.bak
-*output_files/
+#*output_files/
 *greybox_tmp/
 *RemoteSystemsTempFiles
 *.ppf
