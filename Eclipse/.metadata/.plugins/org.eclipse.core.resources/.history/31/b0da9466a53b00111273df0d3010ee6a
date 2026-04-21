@@ -1,0 +1,36 @@
+#include <stdio.h>
+#include "includes.h"
+#include "altera_up_avalon_accelerometer_spi.h"
+
+#define ACCEL_PRIORITY 0
+#define ACCEL_STACKSIZE 2048
+
+OS_STK accel_stk[ACCEL_STACKSIZE];
+char output[64];
+
+
+void ACCELtask(void* pdata){
+
+	alt_up_accelerometer_spi_dev *accel = alt_up_accelerometer_spi_open_dev("/dev/accelerometer_spi_0");
+	if (!accel){
+		printf("[ACCEL] Failed to open device \n");
+		return;
+	} else{
+		printf("[ACCEL] Device Initialized Successfully\n");
+	}
+
+	alt_32 x, y, z;
+
+	while(1){
+		alt_up_accelerometer_spi_read_x_axis(accel, &x);
+		alt_up_accelerometer_spi_read_y_axis(accel, &y);
+		alt_up_accelerometer_spi_read_z_axis(accel, &z);
+
+		sprintf(output, "[ACCEL] X = %ld, Y = %ld, Z = %1d/n",x,y,z);
+		printf("%s", output);
+
+		OSTimeDlyHMSM(0,0,1,0);
+	}
+
+}
+

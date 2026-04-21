@@ -1,0 +1,66 @@
+#include <stdio.h>
+#include "includes.h"
+#define TASK_STACKSIZE 2048
+OS_STK VGATaskStk[TASK_STACKSIZE];
+volatile int * ADDR_EXPORT  = (int *) 0x04041030;
+volatile int * PIXEL_EXPORT = (int *) 0x04041050;
+volatile int * WREN_EXPORT  = (int *) 0x04041020;
+
+
+
+void write_pixel(unsigned int addr, unsigned char color) {
+    *ADDR_EXPORT = addr;
+    *PIXEL_EXPORT = color & 0xF;
+    *WREN_EXPORT = 1;
+	OSTimeDlyHMSM(0,0,1,0);
+    *WREN_EXPORT = 0;
+}
+
+
+void draw_color_stripes(){
+
+	for (int y = 0; y < 240; y++){
+		for (int x = 0; x < 320; x++){
+			unsigned int addr = y * 320 + x;
+			unsigned char color = x/20;
+			write_pixel(addr, color);
+		}
+	}
+}
+
+void draw_vertical_stripes(){
+	for(int y = 0; y < 240; y++){
+		unsigned char color = y /15;
+		for (int x = 0; x < 320; x++){
+			unsigned int addr = y * 320 + x;
+			write_pixel(addr, color);
+		}
+	}
+}
+
+void VGATask(void* pdata){
+	printf("Start VGA Task");
+	while (1){
+		draw_color_stripes();
+		printf("Should output horizontal stripes");
+		OSTimeDlyHMSM(0,0,1,0);
+		draw_vertical_stripes();
+		printf("Should output vertical stripes");
+		OSTimeDlyHMSM(0,0,1,0);
+
+	}
+}
+
+int main()
+{
+	OSInit();
+	OSTaskCreate(
+	        VGATask,// Pointer to the function
+	        NULL,                  // The 'pdata' argument (pass NULL if not used)
+	        &VGATaskStk[TASK_STACKSIZE - 1], // Pointer to the TOP of the stack
+	        5                      // Priority (Lower number = higher priority)
+	    );
+	OSStart();
+
+	return 0;
+}

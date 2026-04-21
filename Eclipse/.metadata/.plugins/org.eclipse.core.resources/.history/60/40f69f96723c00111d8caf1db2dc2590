@@ -1,0 +1,234 @@
+#include <stdio.h>
+#include "includes.h"
+#include <string.h>
+#include "altera_up_avalon_accelerometer_spi.h"
+
+
+// Weird Micron OS stuff idk
+#define ACCEL_PRIORITY 0
+#define ACCEL_STACKSIZE 2048
+#define VGA_PRIORITY      1
+#define VGA_STACKSIZE  2048
+#define BUTTON_PRIORITY 2
+#define BUTTON_STACKSIZE 2048
+#define DISPLAY_PRIORITY  3
+#define DISPLAY_STACKSIZE 2048
+OS_STK display_stk[DISPLAY_STACKSIZE];
+OS_STK accel_stk[ACCEL_STACKSIZE];
+OS_STK vga_stk[VGA_STACKSIZE];
+OS_STK button_stk[BUTTON_STACKSIZE];
+
+
+
+// Hexadecimal Stuff (g f e d c b a)
+#define H_CHAR 0x89 // 10001001
+#define E_CHAR 0x86 // 10000110
+#define L_CHAR 0xC7 // 11000111
+#define O_CHAR 0xC0 // 11000000
+#define OFF  0xFF // 11111111
+
+// Random variables
+char output[64];
+const char* sentence_1 = "HELLO FROM BUTTON 1\r\n";
+const char* sentence_2 = "SYSTEM STABLE: BUTTON 2\r\n";
+
+// Hexadecimal Message
+unsigned char message[] = {OFF, OFF, OFF, OFF, OFF, O_CHAR, L_CHAR, L_CHAR, E_CHAR, H_CHAR, OFF, OFF, OFF, OFF, OFF};
+int msg_len = sizeof(message);
+unsigned char hex_digits[] = {0xC0, 0xF9, 0xA4, 0xB0, 0x99, 0x92, 0x82, 0xF8, 0x80, 0x90};
+
+
+volatile int * ADDR_EXPORT  = (int *) 0x04041050;
+volatile int * PIXEL_EXPORT = (int *) 0x04041070;
+volatile int * WREN_EXPORT  = (int *) 0x04041040;
+volatile int * KEY_1  = (int *) 0x040410F0;
+volatile int * KEY_0  = (int *) 0x040410E0;
+volatile int * LED_PTR  = (int *) 0x04041110;
+volatile int * SW_PTR   = (int *) 0x04041100;
+volatile int * HEX_PTRS[6] = {
+    (int *)0x040410D0, // HEX0
+    (int *)0x040410C0, // HEX1
+    (int *)0x040410B0, // HEX2
+    (int *)0x040410A0, // HEX3
+    (int *)0x04041090, // HEX4
+    (int *)0x04041080  // HEX5
+};
+
+
+void write_pixel(unsigned int addr, unsigned char color) {
+    *ADDR_EXPORT = addr;
+    *PIXEL_EXPORT = color & 0xF;
+    *WREN_EXPORT = 1;
+    *WREN_EXPORT = 0;
+}
+
+
+void draw_color_stripes(){
+
+	for (int y = 0; y < 240; y++){
+		for (int x = 0; x < 320; x++){
+			unsigned int addr = y * 320 + x;
+			unsigned char color = x/20;
+			write_pixel(addr, color);
+		}
+	}
+}
+
+
+void draw_vertical_stripes(){
+	for(int y = 0; y < 240; y++){
+		unsigned char color = y /15;
+		for (int x = 0; x < 320; x++){
+			unsigned int addr = y * 320 + x;
+			write_pixel(addr, color);
+		}
+	}
+}
+
+void VGATask(void* pdata){
+	printf("Start VGA Task");
+	while (1){
+		draw_color_stripes();
+		printf("Should output horizontal stripes");
+		OSTimeDlyHMSM(0,0,1,0);
+		draw_vertical_stripes();
+		printf("Should output vertical stripes");
+		OSTimeDlyHMSM(0,0,1,0);
+
+	}
+}
+
+void ACCELtask(void* pdata){
+
+	alt_up_accelerometer_spi_dev *accel = alt_up_accelerometer_spi_open_dev("/dev/accelerometer_spi_0");
+	if (!accel){
+		printf("[ACCEL] Failed to open device \n");
+		return;
+	} else{
+		printf("[ACCEL] Device Initialized Successfully\n");
+	}
+
+	alt_32 x, y, z;
+
+	while(1){
+		alt_up_accelerometer_spi_read_x_axis(accel, &x);
+		alt_up_accelerometer_spi_read_y_axis(accel, &y);
+		alt_up_accelerometer_spi_read_z_axis(accel, &z);
+
+		sprintf(output, "[ACCEL] X = %ld, Y = %ld, Z = %ld/n",x,y,z);
+		printf("%s\n", output);
+
+		OSTimeDlyHMSM(0,0,1,0);
+	}
+
+}
+
+
+void ButtonTask(void* pdata) {
+
+    int last_key0 = 1;
+    int last_key1 = 1;
+
+    while (1) {
+
+        int current_key0 = *KEY_0 & 0x1;
+        int current_key1 = *KEY_1 & 0x1;
+
+        if (current_key0 == 0 && last_key0 == 1) {
+            printf("Press Button 0\n");
+        }
+
+        if (current_key1 == 0 && last_key1 == 1) {
+            printf("Press Button 1");
+        }
+
+        last_key0 = current_key0;
+        last_key1 = current_key1;
+
+        OSTimeDlyHMSM(0, 0, 0, 50);
+    }
+}
+
+void DisplayTask(void* pdata) {
+    int scroll_index = 0;
+    int loop_counter = 0;
+
+    while(1) {
+    	// Turns on corresponding LED of Switch
+        int sw_state = *SW_PTR & 0x3FF;
+        *LED_PTR = sw_state;
+
+        // Counts number of LEDS turned on
+        int led_count = 0;
+        for (int i = 0; i < 10; i++) {
+        	// srl and check if  LSB  = 1
+            if ((sw_state >> i) & 1) led_count++;
+        }
+        // Displays number of leds turned on on HEX0
+        if (led_count < 10) {
+            *HEX_PTRS[0] = hex_digits[led_count];
+        } else {
+            *HEX_PTRS[0] = 0x88;
+        }
+
+        if (loop_counter >= 5) {
+            for (int i = 1; i <= 5; i++) {
+                int char_index = (scroll_index + (i - 1)) % msg_len;
+                *HEX_PTRS[i] = message[char_index];
+            }
+            scroll_index = (scroll_index + 1) % msg_len;
+            loop_counter = 0;
+        }
+
+        loop_counter++;
+
+        if (sw_state & 0x200) {
+            OSTimeDlyHMSM(0, 0, 0, 40);
+        } else {
+            OSTimeDlyHMSM(0, 0, 0, 20);
+        }
+    }
+}
+
+
+int main(void){
+	OSTaskCreateExt(ACCELtask,
+					NULL,
+					(void*)&accel_stk[ACCEL_STACKSIZE - 1],
+					ACCEL_PRIORITY,
+					ACCEL_PRIORITY,
+					accel_stk,
+					ACCEL_STACKSIZE,
+					NULL,
+					0);
+	OSTaskCreateExt(VGATask,
+					NULL,
+					(void*)&vga_stk[VGA_STACKSIZE - 1],
+					VGA_PRIORITY,
+					VGA_PRIORITY,
+					vga_stk,
+					VGA_STACKSIZE,
+					NULL,
+					0);
+
+	OSTaskCreateExt(ButtonTask,
+					NULL,
+					(void*)&button_stk[BUTTON_STACKSIZE - 1],
+	                BUTTON_PRIORITY,
+					BUTTON_PRIORITY,
+					button_stk,
+					BUTTON_STACKSIZE,
+					NULL,
+					0);
+	OSTaskCreateExt(DisplayTask,
+	                NULL,
+	                (void*)&display_stk[DISPLAY_STACKSIZE - 1],
+	                DISPLAY_PRIORITY,
+	                DISPLAY_PRIORITY,
+	                display_stk,
+	                DISPLAY_STACKSIZE,
+	                NULL,
+	                0);
+	OSStart();
+	return 0;
+}

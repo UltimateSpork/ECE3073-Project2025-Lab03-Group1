@@ -1,0 +1,58 @@
+/*
+ * "Hello World" example.
+ *
+ * This example prints 'Hello from Nios II' to the STDOUT stream. It runs on
+ * the Nios II 'standard', 'full_featured', 'fast', and 'low_cost' example
+ * designs. It runs with or without the MicroC/OS-II RTOS and requires a STDOUT
+ * device in your system's hardware.
+ * The memory footprint of this hosted application is ~69 kbytes by default
+ * using the standard reference design.
+ *
+ * For a reduced footprint version of this template, and an explanation of how
+ * to reduce the memory footprint for a given application, see the
+ * "small_hello_world" template.
+ *
+ */
+
+#include <stdio.h>
+#include "system.h"
+#include "altera_avalon_pio_regs.h" // Standard HAL PIO functions
+#include "unistd.h"                 // For usleep()
+#include <io.h>
+// Define your PIO bases from system.h
+#define ADDR_BASE  0x04041050
+#define PIXEL_BASE 0x04041070
+#define WREN_BASE  0x04042000
+
+void write_pixel(unsigned int addr, unsigned char color) {
+	IOWR_ALTERA_AVALON_PIO_DATA(PIO_4_BASE, 0x00);
+    IOWR_ALTERA_AVALON_PIO_DATA(ADDR_BASE, addr);
+    IOWR_ALTERA_AVALON_PIO_DATA(PIXEL_BASE, color & 0xF);
+    IOWR_ALTERA_AVALON_PIO_DATA(WREN_BASE, 1);
+    IOWR_ALTERA_AVALON_PIO_DATA(WREN_BASE, 0);
+}
+
+
+int main() {
+    printf("Starting HAL VGA Program...\n");
+
+    while (1) {
+        // Draw pattern 1
+        for (int y = 0; y < 240; y++) {
+            for (int x = 0; x < 320; x++) {
+                write_pixel(y * 320 + x, x / 20);
+            }
+        }
+        printf("Pattern 1 Done\n");
+        usleep(1000000); // HAL equivalent of OSTimeDly (1 second)
+
+        // Draw pattern 2 (Clear/Black)
+        for (unsigned int i = 0; i < 76800; i++) {
+            write_pixel(i, 0x0);
+        }
+        printf("Screen Cleared\n");
+        usleep(1000000);
+    }
+
+    return 0;
+}
