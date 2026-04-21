@@ -58,16 +58,16 @@
 *.sdc
 
 # ignore Quartus II generated folders
-*/db/
-*/incremental_db/
-*/simulation/
-*/timing/
-*/testbench/
-*/*_sim/
-*incremental_db/
-*db/
-*_output_files/
-synthesis
+#*/db/
+#*/incremental_db/
+#*/simulation/
+#*/timing/
+#*/testbench/
+#*/*_sim/
+#*incremental_db/
+#*db/
+#*_output_files/
+#synthesis
 
 # Ignore Zips of skeleton code:
 *.zip
@@ -86,7 +86,7 @@ synthesis
 *.metadata/
 
 # Ignore BSP folder:
-*_bsp/*
+#*_bsp/*
 
 # Qsys fixing
 *.qsys_edit/
@@ -107,15 +107,15 @@ synthesis
 *.qip
 
 # Software removals
-software/*_bsp/*
-software/*/.settings/
-software/*/obj/
-software/*/.cproject
-software/*/.force_relink
-software/*/.project
-software/*/create-this-app
-software/*/Makefile
-software/*/*.elf
-software/*/*.map
-software/*/*.objdump
-software/*/readme.txt
+#software/*_bsp/*
+#software/*/.settings/
+#software/*/obj/
+#software/*/.cproject
+#software/*/.force_relink
+#software/*/.project
+#software/*/create-this-app
+#software/*/Makefile
+#software/*/*.elf
+#software/*/*.map
+#software/*/*.objdump
+#software/*/readme.txt
